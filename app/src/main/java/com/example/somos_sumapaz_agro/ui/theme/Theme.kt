@@ -13,33 +13,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = VerdeSalvia,
+    primary = AmarilloCremaOscuro,
     secondary = NaranjaArena,
-    tertiary = AmarilloCrema,
+    tertiary = VerdeOlivaMedio,
     background = VerdePrincipal,
     surface = VerdeOlivaMedio,
-    onPrimary = Color.White,
+    onPrimary = Color.Black,
     onSecondary = Color.Black,
     onBackground = Color.White,
     onSurface = Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = VerdePrincipal,
+    primary = AmarilloCremaOscuro,      // Amarillo crema más oscuro para botones
     secondary = NaranjaArena,
-    tertiary = AmarilloCrema,
-    background = AmarilloMuyClaro,
-    surface = Color.White,
-    onPrimary = Color.White,
+    tertiary = VerdeOlivaMedio,
+    background = AmarilloCrema,         // Fondo de la aplicación
+    surface = Color.White,              // Fondo de campos y tarjetas
+    onPrimary = Color.Black,            // Letra negra en los botones
     onSecondary = Color.Black,
-    onBackground = Color(0xFF1E211A), // Texto oscuro equilibrado
+    onBackground = Color(0xFF1E211A),   // Texto principal
     onSurface = Color(0xFF1E211A)
 )
 
 @Composable
 fun Somos_sumapaz_agroTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Desactivamos dynamic color para forzar nuestra identidad de marca
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {

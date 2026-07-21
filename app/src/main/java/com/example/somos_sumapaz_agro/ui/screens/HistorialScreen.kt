@@ -226,8 +226,6 @@ fun VisitaPecuariaCard(
                     onClick = onOpenPdf,
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Icon(Icons.Default.Share, contentDescription = "Compartir Acta", modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
                     Text("Ver Acta", style = MaterialTheme.typography.bodyMedium)
                 }
             }
@@ -275,8 +273,6 @@ fun VisitaAgricolaCard(
                     onClick = onOpenPdf,
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Icon(Icons.Default.Share, contentDescription = "Compartir Acta", modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
                     Text("Ver Acta", style = MaterialTheme.typography.bodyMedium)
                 }
             }

@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
                             title = { 
                                 Text(
                                     text = when (currentScreen) {
-                                        Screen.Index -> "ULATA Sumapaz Agro"
+                                        Screen.Index -> "Somos Sumapaz Agro Encuestas"
                                         Screen.Pecuaria -> "Visita Pecuaria"
                                         Screen.Agricola -> "Visita Agrícola"
                                         Screen.Historial -> "Historial de Visitas"
@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primary
+                                containerColor = com.example.somos_sumapaz_agro.ui.theme.VerdeOlivaMedio
                             )
                         )
                     }

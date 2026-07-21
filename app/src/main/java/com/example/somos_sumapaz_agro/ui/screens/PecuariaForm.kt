@@ -99,7 +99,7 @@ fun PecuariaForm(
         Text(
             text = "Acompañamiento Área Pecuaria",
             style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -111,7 +111,7 @@ fun PecuariaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("1. Información General", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("1. Información General", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Fecha Picker
@@ -231,7 +231,7 @@ fun PecuariaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("2. Especies y Motivos", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("2. Especies y Motivos", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Lista desplegable de Selección Múltiple para Especies
@@ -278,7 +278,7 @@ fun PecuariaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("3. Diagnóstico / Seguimiento a actividades *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("3. Diagnóstico / Seguimiento a actividades *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = diagnostico,
@@ -298,7 +298,7 @@ fun PecuariaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("4. Procedimiento / Recomendaciones *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("4. Procedimiento / Recomendaciones *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = procedimiento,
@@ -318,7 +318,7 @@ fun PecuariaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("5. Tareas del Productor *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("5. Tareas del Productor *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = recomendaciones,
@@ -338,7 +338,7 @@ fun PecuariaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("6. Corresponsabilidad y Autorización", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("6. Corresponsabilidad y Autorización", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "El productor declara que recibió la asistencia técnica, entendió el procedimiento, acepta las recomendaciones, conoce los posibles riesgos y exonera de responsabilidad a la Alcaldía Local de Sumapaz, la ULATA y al profesional por las actuaciones realizadas.",
@@ -366,7 +366,7 @@ fun PecuariaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("7. Recordatorio y Firmas", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("7. Recordatorio y Firmas", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Recordatorio Próxima Visita

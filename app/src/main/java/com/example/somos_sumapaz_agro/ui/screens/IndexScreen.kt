@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -30,14 +31,14 @@ fun IndexScreen(onNavigate: (Screen) -> Unit) {
         Text(
             text = "Somos Sumapaz",
             style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary,
+            color = com.example.somos_sumapaz_agro.ui.theme.VerdePrincipal,
             fontWeight = FontWeight.ExtraBold,
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Unidad Local de Asistencia Técnica Agropecuaria - ULATA",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.secondary,
+            text = "Agro Encuestas",
+            style = MaterialTheme.typography.titleLarge,
+            color = com.example.somos_sumapaz_agro.ui.theme.VerdeOlivaMedio,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 4.dp, bottom = 32.dp)
@@ -48,7 +49,8 @@ fun IndexScreen(onNavigate: (Screen) -> Unit) {
             title = "Visita Pecuaria",
             subtitle = "Registrar visitas de acompañamiento para ganado, porcinos, aves, etc.",
             icon = Icons.Default.Home,
-            color = MaterialTheme.colorScheme.primary,
+            color = com.example.somos_sumapaz_agro.ui.theme.VerdeOlivaMedio,
+            textColor = Color.White,
             onClick = { onNavigate(Screen.Pecuaria) }
         )
 
@@ -59,7 +61,8 @@ fun IndexScreen(onNavigate: (Screen) -> Unit) {
             title = "Visita Agrícola",
             subtitle = "Registrar visitas para cultivos de hortalizas, tubérculos, frutales e insumos.",
             icon = Icons.Default.Star,
-            color = MaterialTheme.colorScheme.secondary,
+            color = com.example.somos_sumapaz_agro.ui.theme.NaranjaArena,
+            textColor = Color.Black,
             onClick = { onNavigate(Screen.Agricola) }
         )
 
@@ -70,9 +73,9 @@ fun IndexScreen(onNavigate: (Screen) -> Unit) {
             title = "Historial y Reportes",
             subtitle = "Ver visitas cargadas, descargar actas en PDF y exportar consolidados a Excel.",
             icon = Icons.Default.List,
-            color = MaterialTheme.colorScheme.tertiaryContainer,
-            onClick = { onNavigate(Screen.Historial) },
-            textColor = MaterialTheme.colorScheme.onTertiaryContainer
+            color = com.example.somos_sumapaz_agro.ui.theme.AmarilloCremaOscuro,
+            textColor = Color.Black,
+            onClick = { onNavigate(Screen.Historial) }
         )
     }
 }

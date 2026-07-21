@@ -131,7 +131,7 @@ fun AgricolaForm(
         Text(
             text = "Asistencia Técnica Agrícola",
             style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
@@ -143,7 +143,7 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("1. Información General", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("1. Información General", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
@@ -236,7 +236,7 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("2. Motivos de Acompañamiento", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("2. Motivos de Acompañamiento", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Lista desplegable de Selección Múltiple para Motivos
@@ -284,7 +284,7 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("3. Actividades Realizadas (Cultivos)", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("3. Actividades Realizadas (Cultivos)", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Listar Cultivos Agregados
@@ -316,7 +316,7 @@ fun AgricolaForm(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Agregar Cultivo:", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
+                Text("Agregar Cultivo:", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Lista desplegable para Categoría de Cultivo
@@ -427,7 +427,7 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("4. Materiales entregados", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("4. Materiales entregados", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Listar Materiales Agregados
@@ -456,7 +456,7 @@ fun AgricolaForm(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Agregar Material Entregado:", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
+                Text("Agregar Material Entregado:", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.tertiary)
 
                 OutlinedTextField(
                     value = tempMaterial,
@@ -514,7 +514,7 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("5. Georreferenciación y Área", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("5. Georreferenciación y Área", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
@@ -570,7 +570,7 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("6. Recomendaciones Generales *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("6. Recomendaciones Generales *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = recomendaciones,
@@ -590,7 +590,7 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("7. Corresponsabilidad y Autorización", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("7. Corresponsabilidad y Autorización", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "El productor declara que recibió la asistencia técnica, comprendió el procedimiento, acepta las recomendaciones, conoce los posibles riesgos y exonera de responsabilidad a la Alcaldía Local de Sumapaz, la ULATA y al profesional.",
@@ -618,7 +618,7 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("8. Recordatorio y Firmas", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text("8. Recordatorio y Firmas", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Recordatorio Próxima Visita
