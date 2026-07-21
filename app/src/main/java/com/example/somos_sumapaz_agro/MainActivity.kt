@@ -11,9 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -21,10 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import com.example.somos_sumapaz_agro.db.VisitasDbHelper
 import com.example.somos_sumapaz_agro.ui.screens.AgricolaForm
 import com.example.somos_sumapaz_agro.ui.screens.HistorialScreen
+import com.example.somos_sumapaz_agro.ui.screens.IndexScreen
 import com.example.somos_sumapaz_agro.ui.screens.PecuariaForm
 import com.example.somos_sumapaz_agro.ui.theme.Somos_sumapaz_agroTheme
 
 enum class Screen {
+    Index,
     Pecuaria,
     Agricola,
     Historial
@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Inicializar base de datos
+        // Inicializar base de datos local
         dbHelper = VisitasDbHelper(this)
         
         enableEdgeToEdge()
@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                var currentScreen by remember { mutableStateOf(Screen.Pecuaria) }
+                var currentScreen by remember { mutableStateOf(Screen.Index) }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -75,51 +75,31 @@ class MainActivity : ComponentActivity() {
                         TopAppBar(
                             title = { 
                                 Text(
-                                    "ULATA Sumapaz Agro", 
+                                    text = when (currentScreen) {
+                                        Screen.Index -> "ULATA Sumapaz Agro"
+                                        Screen.Pecuaria -> "Visita Pecuaria"
+                                        Screen.Agricola -> "Visita Agrícola"
+                                        Screen.Historial -> "Historial de Visitas"
+                                    }, 
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimary
                                 ) 
+                            },
+                            navigationIcon = {
+                                if (currentScreen != Screen.Index) {
+                                    IconButton(onClick = { currentScreen = Screen.Index }) {
+                                        Icon(
+                                            imageVector = Icons.Default.ArrowBack,
+                                            contentDescription = "Volver al Índice",
+                                            tint = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    }
+                                }
                             },
                             colors = TopAppBarDefaults.topAppBarColors(
                                 containerColor = MaterialTheme.colorScheme.primary
                             )
                         )
-                    },
-                    bottomBar = {
-                        NavigationBar(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ) {
-                            NavigationBarItem(
-                                selected = currentScreen == Screen.Pecuaria,
-                                onClick = { currentScreen = Screen.Pecuaria },
-                                icon = { Icon(Icons.Default.Home, contentDescription = "Pecuaria") },
-                                label = { Text("Pecuaria") },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                                    selectedTextColor = MaterialTheme.colorScheme.primary
-                                )
-                            )
-                            NavigationBarItem(
-                                selected = currentScreen == Screen.Agricola,
-                                onClick = { currentScreen = Screen.Agricola },
-                                icon = { Icon(Icons.Default.Star, contentDescription = "Agrícola") },
-                                label = { Text("Agrícola") },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                                    selectedTextColor = MaterialTheme.colorScheme.primary
-                                )
-                            )
-                            NavigationBarItem(
-                                selected = currentScreen == Screen.Historial,
-                                onClick = { currentScreen = Screen.Historial },
-                                icon = { Icon(Icons.Default.List, contentDescription = "Historial") },
-                                label = { Text("Historial") },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                                    selectedTextColor = MaterialTheme.colorScheme.primary
-                                )
-                            )
-                        }
                     }
                 ) { innerPadding ->
                     Surface(
@@ -129,6 +109,9 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.background
                     ) {
                         when (currentScreen) {
+                            Screen.Index -> IndexScreen(
+                                onNavigate = { currentScreen = it }
+                            )
                             Screen.Pecuaria -> PecuariaForm(
                                 dbHelper = dbHelper,
                                 onNavigateToHistorial = { currentScreen = Screen.Historial }

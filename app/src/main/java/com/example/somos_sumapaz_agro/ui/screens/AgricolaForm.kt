@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -17,19 +16,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.somos_sumapaz_agro.db.VisitasDbHelper
 import com.example.somos_sumapaz_agro.model.*
+import com.example.somos_sumapaz_agro.ui.components.DropdownSelector
+import com.example.somos_sumapaz_agro.ui.components.MultiSelectDropdownSelector
 import com.example.somos_sumapaz_agro.ui.components.SignaturePad
 import com.example.somos_sumapaz_agro.util.LocationHelper
 import com.example.somos_sumapaz_agro.util.PdfGenerator
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AgricolaForm(
     dbHelper: VisitasDbHelper,
@@ -123,12 +122,6 @@ fun AgricolaForm(
     var firmaOperario by remember { mutableStateOf<String?>(null) }
     var firmaUsuario by remember { mutableStateOf<String?>(null) }
 
-    // Sincronizar cédula usuario por defecto
-    LaunchedEffect(telefono) {
-        // En agricultura no hay campo cédula directo al inicio, se sincroniza con lo que digite abajo, 
-        // pero la guardamos al final en las firmas.
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -196,41 +189,25 @@ fun AgricolaForm(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 )
 
+                // Lista desplegable para Corregimiento
+                DropdownSelector(
+                    label = "Corregimiento *",
+                    options = listOf("Nazareth", "Betania", "San Juan"),
+                    selectedOption = corregimiento,
+                    onOptionSelected = { corregimiento = it },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                // Lista desplegable para Cuenca
+                DropdownSelector(
+                    label = "Cuenca *",
+                    options = listOf("Río Sumapaz", "Río Blanco"),
+                    selectedOption = cuenca,
+                    onOptionSelected = { cuenca = it },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
                 Spacer(modifier = Modifier.height(8.dp))
-
-                // Corregimiento
-                Text("Corregimiento:", style = MaterialTheme.typography.bodyMedium)
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                    listOf("Nazareth", "Betania", "San Juan").forEach { item ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.selectable(
-                                selected = (corregimiento == item),
-                                onClick = { corregimiento = item }
-                            ).padding(8.dp)
-                        ) {
-                            RadioButton(selected = (corregimiento == item), onClick = { corregimiento = item })
-                            Text(text = item, modifier = Modifier.padding(start = 4.dp))
-                        }
-                    }
-                }
-
-                // Cuenca
-                Text("Cuenca:", style = MaterialTheme.typography.bodyMedium)
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                    listOf("Río Sumapaz", "Río Blanco").forEach { item ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.selectable(
-                                selected = (cuenca == item),
-                                onClick = { cuenca = item }
-                            ).padding(8.dp)
-                        ) {
-                            RadioButton(selected = (cuenca == item), onClick = { cuenca = item })
-                            Text(text = item, modifier = Modifier.padding(start = 4.dp))
-                        }
-                    }
-                }
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Button(
@@ -260,44 +237,33 @@ fun AgricolaForm(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("2. Motivos de Acompañamiento", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                Text("Objetivo de Acompañamiento:", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
-                motivosList.forEach { motivo ->
-                    val isChecked = selectedMotivos.contains(motivo)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
-                    ) {
-                        Checkbox(
-                            checked = isChecked,
-                            onCheckedChange = { checked ->
-                                if (checked) selectedMotivos.add(motivo)
-                                else selectedMotivos.remove(motivo)
-                            }
-                        )
-                        Text(motivo, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
+                // Lista desplegable de Selección Múltiple para Motivos
+                MultiSelectDropdownSelector(
+                    label = "Objetivo de Acompañamiento *",
+                    options = motivosList,
+                    selectedOptions = selectedMotivos,
+                    onOptionToggled = { motivo ->
+                        if (selectedMotivos.contains(motivo)) selectedMotivos.remove(motivo)
+                        else selectedMotivos.add(motivo)
+                    },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Estado de la Huerta:", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
-                huertasList.forEach { huerta ->
-                    val isChecked = selectedHuertas.contains(huerta)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
-                    ) {
-                        Checkbox(
-                            checked = isChecked,
-                            onCheckedChange = { checked ->
-                                if (checked) selectedHuertas.add(huerta)
-                                else selectedHuertas.remove(huerta)
-                            }
-                        )
-                        Text(huerta, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
+
+                // Lista desplegable de Selección Múltiple para Huerta
+                MultiSelectDropdownSelector(
+                    label = "Estado de la Huerta *",
+                    options = huertasList,
+                    selectedOptions = selectedHuertas,
+                    onOptionToggled = { huerta ->
+                        if (selectedHuertas.contains(huerta)) selectedHuertas.remove(huerta)
+                        else selectedHuertas.add(huerta)
+                    },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
@@ -351,21 +317,16 @@ fun AgricolaForm(
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("Agregar Cultivo:", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // Selector Categoría
-                Text("Categoría:", style = MaterialTheme.typography.bodySmall)
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    categoriasCultivo.forEach { cat ->
-                        FilterChip(
-                            selected = (tempCategoria == cat),
-                            onClick = { tempCategoria = cat },
-                            label = { Text(cat) },
-                            modifier = Modifier.padding(2.dp)
-                        )
-                    }
-                }
+                // Lista desplegable para Categoría de Cultivo
+                DropdownSelector(
+                    label = "Categoría de Cultivo *",
+                    options = categoriasCultivo,
+                    selectedOption = tempCategoria,
+                    onOptionSelected = { tempCategoria = it },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
 
                 OutlinedTextField(
                     value = tempTipo,
@@ -377,7 +338,7 @@ fun AgricolaForm(
                 OutlinedTextField(
                     value = tempEspecie,
                     onValueChange = { tempEspecie = it },
-                    label = { Text("Especie cultivada (Nombre)") },
+                    label = { Text("Especie cultivada (Nombre) *") },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
                 )
 
@@ -385,13 +346,13 @@ fun AgricolaForm(
                     OutlinedTextField(
                         value = tempArea,
                         onValueChange = { tempArea = it },
-                        label = { Text("Área (m²)") },
+                        label = { Text("Área (m²) *") },
                         modifier = Modifier.weight(1f).padding(end = 2.dp)
                     )
                     OutlinedTextField(
                         value = tempProduccion,
                         onValueChange = { tempProduccion = it },
-                        label = { Text("Producción (kg)") },
+                        label = { Text("Producción (kg) *") },
                         modifier = Modifier.weight(1f).padding(start = 2.dp)
                     )
                 }

@@ -9,35 +9,38 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Green80,
-    secondary = EarthGrey80,
-    tertiary = Teal80
+    primary = VerdeSalvia,
+    secondary = NaranjaArena,
+    tertiary = AmarilloCrema,
+    background = VerdePrincipal,
+    surface = VerdeOlivaMedio,
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onBackground = Color.White,
+    onSurface = Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = ForestGreen,
-    secondary = EarthBrown,
-    tertiary = TealDark
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    primary = VerdePrincipal,
+    secondary = NaranjaArena,
+    tertiary = AmarilloCrema,
+    background = AmarilloMuyClaro,
+    surface = Color.White,
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    onSecondary = Color.Black,
+    onBackground = Color(0xFF1E211A), // Texto oscuro equilibrado
+    onSurface = Color(0xFF1E211A)
 )
 
 @Composable
 fun Somos_sumapaz_agroTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // Desactivamos dynamic color para forzar nuestra identidad de marca
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

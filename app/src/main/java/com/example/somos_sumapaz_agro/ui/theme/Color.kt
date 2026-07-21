@@ -2,11 +2,18 @@ package com.example.somos_sumapaz_agro.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Colores inspirados en agricultura y ganadería (Verde y Tierra)
-val Green80 = Color(0xFFA5D6A7)
-val EarthGrey80 = Color(0xFFD7CCC8)
-val Teal80 = Color(0xFF80CBC4)
+// Paleta de Colores de Identidad Visual "Somos Sumapaz"
 
-val ForestGreen = Color(0xFF2E7D32)
-val EarthBrown = Color(0xFF8D6E63)
-val TealDark = Color(0xFF00796B)
+// Verdes
+val VerdePrincipal = Color(0xFF474F2F)  // #474F2F
+val VerdeOlivaMedio = Color(0xFF647153) // #647153
+val VerdeSalvia = Color(0xFF849682)     // #849682
+val VerdeMuyClaro = Color(0xFFD6E6DF)   // #D6E6DF
+
+// Amarillos
+val AmarilloCrema = Color(0xFFE6D9AA)   // #E6D9AA
+val AmarilloMuyClaro = Color(0xFFF3E7C6) // #F3E7C6
+
+// Naranjas y Cafés
+val NaranjaArena = Color(0xFFE9B871)    // #E9B871
+val BeigeTostado = Color(0xFFA7946C)    // #A7946C

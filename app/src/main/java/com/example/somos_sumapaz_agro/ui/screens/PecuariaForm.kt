@@ -6,7 +6,6 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,13 +15,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.somos_sumapaz_agro.db.VisitasDbHelper
 import com.example.somos_sumapaz_agro.model.VisitaPecuaria
+import com.example.somos_sumapaz_agro.ui.components.DropdownSelector
+import com.example.somos_sumapaz_agro.ui.components.MultiSelectDropdownSelector
 import com.example.somos_sumapaz_agro.ui.components.SignaturePad
 import com.example.somos_sumapaz_agro.util.LocationHelper
 import com.example.somos_sumapaz_agro.util.PdfGenerator
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PecuariaForm(
     dbHelper: VisitasDbHelper,
@@ -127,22 +127,14 @@ fun PecuariaForm(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Corregimiento
-                Text("Corregimiento:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                    listOf("Nazareth", "Betania", "San Juan").forEach { item ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.selectable(
-                                selected = (corregimiento == item),
-                                onClick = { corregimiento = item }
-                            ).padding(8.dp)
-                        ) {
-                            RadioButton(selected = (corregimiento == item), onClick = { corregimiento = item })
-                            Text(text = item, modifier = Modifier.padding(start = 4.dp))
-                        }
-                    }
-                }
+                // Lista desplegable para Corregimiento
+                DropdownSelector(
+                    label = "Corregimiento *",
+                    options = listOf("Nazareth", "Betania", "San Juan"),
+                    selectedOption = corregimiento,
+                    onOptionSelected = { corregimiento = it },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
 
                 OutlinedTextField(
                     value = vereda,
@@ -158,24 +150,16 @@ fun PecuariaForm(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                // Lista desplegable para Cuenca
+                DropdownSelector(
+                    label = "Cuenca *",
+                    options = listOf("Río Sumapaz", "Río Blanco"),
+                    selectedOption = cuenca,
+                    onOptionSelected = { cuenca = it },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
 
-                // Cuenca
-                Text("Cuenca:", style = MaterialTheme.typography.bodyMedium)
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                    listOf("Río Sumapaz", "Río Blanco").forEach { item ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.selectable(
-                                selected = (cuenca == item),
-                                onClick = { cuenca = item }
-                            ).padding(8.dp)
-                        ) {
-                            RadioButton(selected = (cuenca == item), onClick = { cuenca = item })
-                            Text(text = item, modifier = Modifier.padding(start = 4.dp))
-                        }
-                    }
-                }
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Button(
@@ -247,52 +231,31 @@ fun PecuariaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("2. Tipo de Especie Atendida", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                Spacer(modifier = Modifier.height(8.dp))
+                Text("2. Especies y Motivos", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(12.dp))
 
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    maxItemsInEachRow = 2
-                ) {
-                    especiesList.forEach { especie ->
-                        val isChecked = selectedEspecies.contains(especie)
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth(0.5f)
-                                .padding(vertical = 2.dp)
-                        ) {
-                            Checkbox(
-                                checked = isChecked,
-                                onCheckedChange = { checked ->
-                                    if (checked) selectedEspecies.add(especie)
-                                    else selectedEspecies.remove(especie)
-                                }
-                            )
-                            Text(especie, style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
+                // Lista desplegable de Selección Múltiple para Especies
+                MultiSelectDropdownSelector(
+                    label = "Especies Atendidas *",
+                    options = especiesList,
+                    selectedOptions = selectedEspecies,
+                    onOptionToggled = { especie ->
+                        if (selectedEspecies.contains(especie)) selectedEspecies.remove(especie)
+                        else selectedEspecies.add(especie)
+                    },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Motivo de la Visita", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.selectable(selected = esPrimeraVez, onClick = { esPrimeraVez = true })
-                    ) {
-                        RadioButton(selected = esPrimeraVez, onClick = { esPrimeraVez = true })
-                        Text("Primera vez", modifier = Modifier.padding(start = 4.dp))
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.selectable(selected = !esPrimeraVez, onClick = { esPrimeraVez = false })
-                    ) {
-                        RadioButton(selected = !esPrimeraVez, onClick = { esPrimeraVez = false })
-                        Text("Seguimiento", modifier = Modifier.padding(start = 4.dp))
-                    }
-                }
+                
+                // Lista desplegable para Motivo de Visita
+                DropdownSelector(
+                    label = "Motivo de la Visita *",
+                    options = listOf("Primera vez", "Seguimiento"),
+                    selectedOption = if (esPrimeraVez) "Primera vez" else "Seguimiento",
+                    onOptionSelected = { esPrimeraVez = (it == "Primera vez") },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
 
                 if (!esPrimeraVez) {
                     Spacer(modifier = Modifier.height(8.dp))
