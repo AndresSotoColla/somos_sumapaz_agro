@@ -86,7 +86,7 @@ fun HistorialScreen(dbHelper: VisitasDbHelper) {
         Text(
             text = "Historial de Visitas",
             style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
@@ -104,7 +104,7 @@ fun HistorialScreen(dbHelper: VisitasDbHelper) {
                     }
                 },
                 modifier = Modifier.weight(1f).padding(end = 4.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Excel Pecuaria", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
             }
@@ -118,7 +118,7 @@ fun HistorialScreen(dbHelper: VisitasDbHelper) {
                     }
                 },
                 modifier = Modifier.weight(1f).padding(start = 4.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Excel Agrícola", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
             }

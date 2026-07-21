@@ -13,8 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = AmarilloCremaOscuro,
-    secondary = NaranjaArena,
+    primary = NaranjaArena,
+    secondary = AmarilloCrema,
     tertiary = VerdeOlivaMedio,
     background = VerdePrincipal,
     surface = VerdeOlivaMedio,
@@ -25,15 +25,15 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = AmarilloCremaOscuro,      // Amarillo crema más oscuro para botones
-    secondary = NaranjaArena,
-    tertiary = VerdeOlivaMedio,
-    background = AmarilloCrema,         // Fondo de la aplicación
-    surface = Color.White,              // Fondo de campos y tarjetas
+    primary = NaranjaArena,             // Botones principales en naranja arena crema
+    secondary = AmarilloCrema,
+    tertiary = VerdeOlivaMedio,         // Headers en verde olivo
+    background = Color.White,           // Fondo blanco
+    surface = Color.White,              // Superficies/Tarjetas blancas
     onPrimary = Color.Black,            // Letra negra en los botones
     onSecondary = Color.Black,
-    onBackground = Color(0xFF1E211A),   // Texto principal
-    onSurface = Color(0xFF1E211A)
+    onBackground = Color(0xFF1E211A),   // Letra de contenido negra
+    onSurface = Color(0xFF1E211A)       // Letra de superficies negra
 )
 
 @Composable

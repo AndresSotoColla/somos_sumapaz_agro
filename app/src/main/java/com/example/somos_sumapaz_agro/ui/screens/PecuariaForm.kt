@@ -120,7 +120,7 @@ fun PecuariaForm(
                         showDatePickerDialog(context) { fecha = it }
                     },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary, contentColor = MaterialTheme.colorScheme.onSecondary)
                 ) {
                     Text("Fecha de Visita: $fecha")
                 }
@@ -165,14 +165,14 @@ fun PecuariaForm(
                     Button(
                         onClick = { showTimePickerDialog(context) { horaInicio = it } },
                         modifier = Modifier.weight(1f).padding(end = 4.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary, contentColor = MaterialTheme.colorScheme.onSecondary)
                     ) {
                         Text("Inicio: $horaInicio")
                     }
                     Button(
                         onClick = { showTimePickerDialog(context) { horaFin = it } },
                         modifier = Modifier.weight(1f).padding(start = 4.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary, contentColor = MaterialTheme.colorScheme.onSecondary)
                     ) {
                         Text(text = if (horaFin.isEmpty()) "Hora Fin" else "Fin: $horaFin")
                     }
@@ -262,7 +262,7 @@ fun PecuariaForm(
                     Button(
                         onClick = { showDatePickerDialog(context) { fechaVisitaAnterior = it } },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary, contentColor = MaterialTheme.colorScheme.onSecondary)
                     ) {
                         Text(text = if (fechaVisitaAnterior.isEmpty()) "Fecha de Visita Anterior *" else "Anterior: $fechaVisitaAnterior")
                     }
@@ -373,7 +373,7 @@ fun PecuariaForm(
                 Button(
                     onClick = { showDatePickerDialog(context) { proximaVisita = it } },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary, contentColor = MaterialTheme.colorScheme.onSecondary)
                 ) {
                     Text(text = if (proximaVisita.isEmpty()) "Recordatorio Próxima Visita" else "Próxima Visita: $proximaVisita")
                 }
