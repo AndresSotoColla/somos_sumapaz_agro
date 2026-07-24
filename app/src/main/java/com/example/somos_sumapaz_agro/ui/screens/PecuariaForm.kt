@@ -18,11 +18,9 @@ import com.example.somos_sumapaz_agro.model.VisitaPecuaria
 import com.example.somos_sumapaz_agro.ui.components.DropdownSelector
 import com.example.somos_sumapaz_agro.ui.components.MultiSelectDropdownSelector
 import com.example.somos_sumapaz_agro.ui.components.SignaturePad
+import com.example.somos_sumapaz_agro.util.Constants
 import com.example.somos_sumapaz_agro.util.LocationHelper
-import com.example.somos_sumapaz_agro.util.NetworkUtils
 import com.example.somos_sumapaz_agro.util.PdfGenerator
-import com.example.somos_sumapaz_agro.util.SyncManager
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,7 +31,6 @@ fun PecuariaForm(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
     var showConfirmDialog by remember { mutableStateOf(false) }
 
     // Form States
@@ -132,19 +129,18 @@ fun PecuariaForm(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Lista desplegable para Corregimiento
-                DropdownSelector(
-                    label = "Corregimiento *",
-                    options = listOf("Nazareth", "Betania", "San Juan"),
-                    selectedOption = corregimiento,
-                    onOptionSelected = { corregimiento = it },
-                    modifier = Modifier.padding(vertical = 4.dp)
+                OutlinedTextField(
+                    value = usuario,
+                    onValueChange = { usuario = it },
+                    label = { Text("Nombre del Productor (Usuario) *") },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 )
 
+                // Cédula del Productor preguntada arriba
                 OutlinedTextField(
-                    value = vereda,
-                    onValueChange = { vereda = it },
-                    label = { Text("Vereda *") },
+                    value = documento,
+                    onValueChange = { documento = it },
+                    label = { Text("Cédula del Productor *") },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 )
 
@@ -153,6 +149,24 @@ fun PecuariaForm(
                     onValueChange = { finca = it },
                     label = { Text("Finca *") },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                )
+
+                // Lista desplegable para Vereda (Selección Única)
+                DropdownSelector(
+                    label = "Vereda *",
+                    options = Constants.VEREDAS_SUMAPAZ,
+                    selectedOption = vereda,
+                    onOptionSelected = { vereda = it },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                // Lista desplegable para Corregimiento
+                DropdownSelector(
+                    label = "Corregimiento *",
+                    options = listOf("Nazareth", "Betania", "San Juan"),
+                    selectedOption = corregimiento,
+                    onOptionSelected = { corregimiento = it },
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
 
                 // Lista desplegable para Cuenca
@@ -179,7 +193,7 @@ fun PecuariaForm(
                         modifier = Modifier.weight(1f).padding(start = 4.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary, contentColor = MaterialTheme.colorScheme.onSecondary)
                     ) {
-                        Text(text = if (horaFin.isEmpty()) "Hora Fin" else "Fin: $horaFin")
+                        Text(text = if (horaFin.isEmpty()) "Hora Fin *" else "Fin: $horaFin")
                     }
                 }
 
@@ -208,23 +222,9 @@ fun PecuariaForm(
                             )
                         }
                     ) {
-                        Text("GPS")
+                        Text("Obtener GPS *")
                     }
                 }
-
-                OutlinedTextField(
-                    value = usuario,
-                    onValueChange = { usuario = it },
-                    label = { Text("Nombre del Productor (Usuario) *") },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                )
-
-                OutlinedTextField(
-                    value = documento,
-                    onValueChange = { documento = it },
-                    label = { Text("Documento de Identidad *") },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                )
             }
         }
 
@@ -239,7 +239,6 @@ fun PecuariaForm(
                 Text("2. Especies y Motivos", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Lista desplegable de Selección Múltiple para Especies
                 MultiSelectDropdownSelector(
                     label = "Especies Atendidas *",
                     options = especiesList,
@@ -253,7 +252,6 @@ fun PecuariaForm(
 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Lista desplegable para Motivo de Visita
                 DropdownSelector(
                     label = "Motivo de la Visita *",
                     options = listOf("Primera vez", "Seguimiento"),
@@ -288,7 +286,7 @@ fun PecuariaForm(
                 OutlinedTextField(
                     value = diagnostico,
                     onValueChange = { diagnostico = it },
-                    label = { Text("Registrar hallazgos, estado sanitario, alimentación, infraestructura, etc.") },
+                    label = { Text("Registrar hallazgos, estado sanitario, alimentación, infraestructura, etc. *") },
                     modifier = Modifier.fillMaxWidth().height(120.dp),
                     maxLines = 10
                 )
@@ -308,7 +306,7 @@ fun PecuariaForm(
                 OutlinedTextField(
                     value = procedimiento,
                     onValueChange = { procedimiento = it },
-                    label = { Text("Registrar tratamientos, capacitación, manejos y procedimientos efectuados.") },
+                    label = { Text("Registrar tratamientos, capacitación, manejos y procedimientos efectuados. *") },
                     modifier = Modifier.fillMaxWidth().height(100.dp),
                     maxLines = 10
                 )
@@ -328,7 +326,7 @@ fun PecuariaForm(
                 OutlinedTextField(
                     value = recomendaciones,
                     onValueChange = { recomendaciones = it },
-                    label = { Text("Registrar tareas pendientes para el productor (ej. vacunar, cambiar alimento, etc.)") },
+                    label = { Text("Registrar tareas pendientes para el productor (ej. vacunar, cambiar alimento, etc.) *") },
                     modifier = Modifier.fillMaxWidth().height(100.dp),
                     maxLines = 10
                 )
@@ -343,7 +341,7 @@ fun PecuariaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("6. Corresponsabilidad y Autorización", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
+                Text("6. Corresponsabilidad y Autorización *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "El productor declara que recibió la asistencia técnica, entendió el procedimiento, acepta las recomendaciones, conoce los posibles riesgos y exonera de responsabilidad a la Alcaldía Local de Sumapaz, la ULATA y al profesional por las actuaciones realizadas.",
@@ -380,7 +378,7 @@ fun PecuariaForm(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary, contentColor = MaterialTheme.colorScheme.onSecondary)
                 ) {
-                    Text(text = if (proximaVisita.isEmpty()) "Recordatorio Próxima Visita" else "Próxima Visita: $proximaVisita")
+                    Text(text = if (proximaVisita.isEmpty()) "Seleccionar Fecha Próxima Visita *" else "Próxima Visita: $proximaVisita")
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -430,8 +428,8 @@ fun PecuariaForm(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Datos Usuario (Nombre y Cédula pre-sincronizados pero editables aquí)
-                Text("Usuario: $usuario ($cedulaUsuario)", style = MaterialTheme.typography.bodyMedium)
+                Text("Productor: $usuario ${if (cedulaUsuario.isNotEmpty()) "($cedulaUsuario)" else ""}", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // Firma Usuario
                 SignaturePad(
@@ -449,40 +447,71 @@ fun PecuariaForm(
         // Botón de Guardado
         Button(
             onClick = {
-                // VALIDACIONES
-                if (vereda.isBlank() || finca.isBlank() || usuario.isBlank() || documento.isBlank() ||
-                    diagnostico.isBlank() || procedimiento.isBlank() || recomendaciones.isBlank() ||
-                    profesional.isBlank() || tarjetaProfesional.isBlank() || cedulaOperario.isBlank()
+                // 1. VALIDACIÓN: Obligatoriedad de Todos los Campos
+                if (fecha.isBlank() || corregimiento.isBlank() || vereda.isBlank() || finca.isBlank() ||
+                    cuenca.isBlank() || horaInicio.isBlank() || horaFin.isBlank() || usuario.isBlank() ||
+                    documento.isBlank()
                 ) {
-                    Toast.makeText(context, "Por favor complete todos los campos marcados con (*)", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Por favor complete todos los campos de información general (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
-                if (!esPrimeraVez && fechaVisitaAnterior.isBlank()) {
-                    Toast.makeText(context, "Debe ingresar la fecha de la visita anterior para el seguimiento", Toast.LENGTH_LONG).show()
+                if (latitud == null || longitud == null) {
+                    Toast.makeText(context, "Por favor capture las coordenadas GPS de la visita (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
                 if (selectedEspecies.isEmpty()) {
-                    Toast.makeText(context, "Debe seleccionar al menos una especie de la lista", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Debe seleccionar al menos una especie de la lista (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (!esPrimeraVez && fechaVisitaAnterior.isBlank()) {
+                    Toast.makeText(context, "Debe ingresar la fecha de la visita anterior para el seguimiento (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (diagnostico.isBlank()) {
+                    Toast.makeText(context, "Ingrese el diagnóstico / seguimiento a actividades (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (procedimiento.isBlank()) {
+                    Toast.makeText(context, "Ingrese el procedimiento / recomendaciones (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (recomendaciones.isBlank()) {
+                    Toast.makeText(context, "Ingrese las tareas del productor (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
                 if (!aceptaCorresponsabilidad) {
-                    Toast.makeText(context, "Debe aceptar el texto de corresponsabilidad legal", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Debe aceptar el texto de corresponsabilidad legal (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
+                if (proximaVisita.isBlank()) {
+                    Toast.makeText(context, "Ingrese la fecha programada para la próxima visita (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (profesional.isBlank() || tarjetaProfesional.isBlank() || cedulaOperario.isBlank()) {
+                    Toast.makeText(context, "Por favor diligencie los datos del profesional y operario (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                // 2. VALIDACIÓN ESPECÍFICA DE FIRMAS
                 if (firmaProfesional == null) {
-                    Toast.makeText(context, "Falta la firma digital del Profesional", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Por favor guarde la firma correspondiente del Profesional", Toast.LENGTH_LONG).show()
                     return@Button
                 }
                 if (firmaOperario == null) {
-                    Toast.makeText(context, "Falta la firma digital del Operario de Campo", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Por favor guarde la firma correspondiente del Operario de Campo", Toast.LENGTH_LONG).show()
                     return@Button
                 }
                 if (firmaUsuario == null) {
-                    Toast.makeText(context, "Falta la firma digital del Productor (Usuario)", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Por favor guarde la firma correspondiente del Productor (Usuario)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
@@ -539,27 +568,13 @@ fun PecuariaForm(
                             val id = dbHelper.insertVisitaPecuaria(visita)
                             if (id != -1L) {
                                 val visitaGuardada = visita.copy(id = id.toInt())
-                                
-                                coroutineScope.launch {
-                                    if (NetworkUtils.isNetworkAvailable(context)) {
-                                        val uploaded = SyncManager.uploadPecuaria(visitaGuardada)
-                                        if (uploaded) {
-                                            dbHelper.markVisitaPecuariaSynced(id.toInt())
-                                            Toast.makeText(context, "Visita pecuaria subida a la nube exitosamente", Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(context, "Guardado local. Se sincronizará en segundo plano al conectar.", Toast.LENGTH_LONG).show()
-                                        }
-                                    } else {
-                                        Toast.makeText(context, "Guardado localmente (Sin internet). Se sincronizará apenas haya conexión.", Toast.LENGTH_LONG).show()
-                                    }
-                                }
 
                                 // Generar PDF
                                 try {
                                     val pdfFile = PdfGenerator.generateVisitaPecuariaPdf(context, visitaGuardada)
-                                    Toast.makeText(context, "PDF generado: ${pdfFile.name}", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Registro guardado y PDF generado: ${pdfFile.name}", Toast.LENGTH_SHORT).show()
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Error al generar PDF: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, "Registro guardado. Error al generar PDF: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                                 }
                                 onNavigateToHistorial()
                             } else {

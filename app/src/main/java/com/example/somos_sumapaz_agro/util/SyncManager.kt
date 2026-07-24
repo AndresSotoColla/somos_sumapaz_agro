@@ -6,18 +6,29 @@ import com.example.somos_sumapaz_agro.db.VisitasDbHelper
 import com.example.somos_sumapaz_agro.model.VisitaAgricola
 import com.example.somos_sumapaz_agro.model.VisitaPecuaria
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Collections
 
 object SyncManager {
     private const val TAG = "SyncManager"
     const val BASE_URL = "https://productorescampesinos.com/api"
 
+    private val syncMutex = Mutex()
+    private val activePecuariaSyncs = Collections.synchronizedSet(HashSet<Int>())
+    private val activeAgricolaSyncs = Collections.synchronizedSet(HashSet<Int>())
+
     suspend fun uploadPecuaria(visita: VisitaPecuaria): Boolean = withContext(Dispatchers.IO) {
+        if (visita.id > 0 && !activePecuariaSyncs.add(visita.id)) {
+            Log.d(TAG, "Visita pecuaria ID ${visita.id} ya se está subiendo.")
+            return@withContext false
+        }
         try {
             val json = JSONObject().apply {
                 put("fecha", visita.fecha)
@@ -74,10 +85,18 @@ object SyncManager {
         } catch (e: Exception) {
             Log.e(TAG, "Excepción al subir visita pecuaria", e)
             return@withContext false
+        } finally {
+            if (visita.id > 0) {
+                activePecuariaSyncs.remove(visita.id)
+            }
         }
     }
 
     suspend fun uploadAgricola(visita: VisitaAgricola): Boolean = withContext(Dispatchers.IO) {
+        if (visita.id > 0 && !activeAgricolaSyncs.add(visita.id)) {
+            Log.d(TAG, "Visita agrícola ID ${visita.id} ya se está subiendo.")
+            return@withContext false
+        }
         try {
             val json = JSONObject().apply {
                 put("fecha", visita.fecha)
@@ -163,6 +182,10 @@ object SyncManager {
         } catch (e: Exception) {
             Log.e(TAG, "Excepción al subir visita agrícola", e)
             return@withContext false
+        } finally {
+            if (visita.id > 0) {
+                activeAgricolaSyncs.remove(visita.id)
+            }
         }
     }
 
@@ -172,30 +195,40 @@ object SyncManager {
             return
         }
 
-        var syncedCount = 0
-
-        // Pecuarias
-        val pendingPecuarias = dbHelper.getUnsyncedVisitasPecuarias()
-        for (visita in pendingPecuarias) {
-            val success = uploadPecuaria(visita)
-            if (success) {
-                dbHelper.markVisitaPecuariaSynced(visita.id)
-                syncedCount++
-            }
+        if (syncMutex.isLocked) {
+            Log.d(TAG, "Sincronización en curso. Omitiendo invocación repetida.")
+            withContext(Dispatchers.Main) { onResult(0) }
+            return
         }
 
-        // Agrícolas
-        val pendingAgricolas = dbHelper.getUnsyncedVisitasAgricolas()
-        for (visita in pendingAgricolas) {
-            val success = uploadAgricola(visita)
-            if (success) {
-                dbHelper.markVisitaAgricolaSynced(visita.id)
-                syncedCount++
-            }
-        }
+        syncMutex.withLock {
+            var syncedCount = 0
 
-        withContext(Dispatchers.Main) {
-            onResult(syncedCount)
+            // Pecuarias
+            val pendingPecuarias = dbHelper.getUnsyncedVisitasPecuarias()
+            for (visita in pendingPecuarias) {
+                if (visita.synced) continue
+                val success = uploadPecuaria(visita)
+                if (success) {
+                    dbHelper.markVisitaPecuariaSynced(visita.id)
+                    syncedCount++
+                }
+            }
+
+            // Agrícolas
+            val pendingAgricolas = dbHelper.getUnsyncedVisitasAgricolas()
+            for (visita in pendingAgricolas) {
+                if (visita.synced) continue
+                val success = uploadAgricola(visita)
+                if (success) {
+                    dbHelper.markVisitaAgricolaSynced(visita.id)
+                    syncedCount++
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                onResult(syncedCount)
+            }
         }
     }
 }

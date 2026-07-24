@@ -24,11 +24,9 @@ import com.example.somos_sumapaz_agro.model.*
 import com.example.somos_sumapaz_agro.ui.components.DropdownSelector
 import com.example.somos_sumapaz_agro.ui.components.MultiSelectDropdownSelector
 import com.example.somos_sumapaz_agro.ui.components.SignaturePad
+import com.example.somos_sumapaz_agro.util.Constants
 import com.example.somos_sumapaz_agro.util.LocationHelper
-import com.example.somos_sumapaz_agro.util.NetworkUtils
 import com.example.somos_sumapaz_agro.util.PdfGenerator
-import com.example.somos_sumapaz_agro.util.SyncManager
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -39,7 +37,6 @@ fun AgricolaForm(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
     var showConfirmDialog by remember { mutableStateOf(false) }
 
     // Form States
@@ -51,6 +48,7 @@ fun AgricolaForm(
     // 1. Información General
     var fecha by remember { mutableStateOf(todayStr) }
     var nombre by remember { mutableStateOf("") }
+    var cedulaUsuario by remember { mutableStateOf("") }
     var finca by remember { mutableStateOf("") }
     var vereda by remember { mutableStateOf("") }
     var corregimiento by remember { mutableStateOf("Nazareth") }
@@ -120,7 +118,6 @@ fun AgricolaForm(
     var profesional by remember { mutableStateOf("") }
     var tarjetaProfesional by remember { mutableStateOf("") }
     var cedulaOperario by remember { mutableStateOf("") }
-    var cedulaUsuario by remember { mutableStateOf("") }
 
     // Signatures (Base64)
     var firmaProfesional by remember { mutableStateOf<String?>(null) }
@@ -173,6 +170,14 @@ fun AgricolaForm(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 )
 
+                // Cédula del Productor preguntada arriba
+                OutlinedTextField(
+                    value = cedulaUsuario,
+                    onValueChange = { cedulaUsuario = it },
+                    label = { Text("Cédula del Productor *") },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                )
+
                 OutlinedTextField(
                     value = telefono,
                     onValueChange = { telefono = it },
@@ -187,11 +192,13 @@ fun AgricolaForm(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 )
 
-                OutlinedTextField(
-                    value = vereda,
-                    onValueChange = { vereda = it },
-                    label = { Text("Vereda *") },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                // Lista desplegable para Vereda (Selección Única)
+                DropdownSelector(
+                    label = "Vereda *",
+                    options = Constants.VEREDAS_SUMAPAZ,
+                    selectedOption = vereda,
+                    onOptionSelected = { vereda = it },
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
 
                 // Lista desplegable para Corregimiento
@@ -227,7 +234,7 @@ fun AgricolaForm(
                         modifier = Modifier.weight(1f).padding(start = 4.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary, contentColor = MaterialTheme.colorScheme.onSecondary)
                     ) {
-                        Text(text = if (horaFin.isEmpty()) "Hora Fin" else "Fin: $horaFin")
+                        Text(text = if (horaFin.isEmpty()) "Hora Fin *" else "Fin: $horaFin")
                     }
                 }
             }
@@ -244,7 +251,6 @@ fun AgricolaForm(
                 Text("2. Motivos de Acompañamiento", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Lista desplegable de Selección Múltiple para Motivos
                 MultiSelectDropdownSelector(
                     label = "Objetivo de Acompañamiento *",
                     options = motivosList,
@@ -258,7 +264,6 @@ fun AgricolaForm(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Lista desplegable de Selección Múltiple para Huerta
                 MultiSelectDropdownSelector(
                     label = "Estado de la Huerta *",
                     options = huertasList,
@@ -289,12 +294,12 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("3. Actividades Realizadas (Cultivos)", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
+                Text("3. Actividades Realizadas (Cultivos) *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Listar Cultivos Agregados
                 if (cultivos.isEmpty()) {
-                    Text("No hay cultivos agregados. Agregue uno abajo.", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    Text("No hay cultivos agregados. Agregue al menos uno abajo. *", style = MaterialTheme.typography.bodyMedium, color = Color.Red)
                 } else {
                     cultivos.forEachIndexed { index, cultivo ->
                         Row(
@@ -321,10 +326,9 @@ fun AgricolaForm(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Agregar Cultivo:", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.tertiary)
+                Text("Agregar Cultivo a la Lista:", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Lista desplegable para Categoría de Cultivo
                 DropdownSelector(
                     label = "Categoría de Cultivo *",
                     options = categoriasCultivo,
@@ -393,6 +397,7 @@ fun AgricolaForm(
                         tempArea = ""
                         tempProduccion = ""
                         tempObsCultivo = ""
+                        Toast.makeText(context, "Cultivo agregado a la lista", Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                 ) {
@@ -437,7 +442,7 @@ fun AgricolaForm(
 
                 // Listar Materiales Agregados
                 if (materiales.isEmpty()) {
-                    Text("No se han agregado materiales.", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+                    Text("No se han agregado materiales a la lista.", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
                 } else {
                     materiales.forEachIndexed { index, mat ->
                         Row(
@@ -503,10 +508,11 @@ fun AgricolaForm(
                         tempMaterial = ""
                         tempCantidad = ""
                         tempUnidad = ""
+                        Toast.makeText(context, "Material agregado a la lista", Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                 ) {
-                    Text("Agregar Material")
+                    Text("Agregar Material a la Lista")
                 }
             }
         }
@@ -519,7 +525,7 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("5. Georreferenciación y Área", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
+                Text("5. Georreferenciación y Área *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
@@ -546,7 +552,7 @@ fun AgricolaForm(
                             )
                         }
                     ) {
-                        Text("GPS")
+                        Text("Obtener GPS *")
                     }
                 }
 
@@ -560,7 +566,7 @@ fun AgricolaForm(
                 OutlinedTextField(
                     value = observacionesGeo,
                     onValueChange = { observacionesGeo = it },
-                    label = { Text("Observaciones de la ubicación") },
+                    label = { Text("Observaciones de la ubicación *") },
                     modifier = Modifier.fillMaxWidth().height(80.dp),
                     maxLines = 4
                 )
@@ -580,7 +586,7 @@ fun AgricolaForm(
                 OutlinedTextField(
                     value = recomendaciones,
                     onValueChange = { recomendaciones = it },
-                    label = { Text("Fertilización, manejo fitosanitario, riego, podas, control de plagas, etc.") },
+                    label = { Text("Fertilización, manejo fitosanitario, riego, podas, control de plagas, etc. *") },
                     modifier = Modifier.fillMaxWidth().height(120.dp),
                     maxLines = 10
                 )
@@ -595,7 +601,7 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("7. Corresponsabilidad y Autorización", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
+                Text("7. Corresponsabilidad y Autorización *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "El productor declara que recibió la asistencia técnica, comprendió el procedimiento, acepta las recomendaciones, conoce los posibles riesgos y exonera de responsabilidad a la Alcaldía Local de Sumapaz, la ULATA y al profesional.",
@@ -632,7 +638,7 @@ fun AgricolaForm(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary, contentColor = MaterialTheme.colorScheme.onSecondary)
                 ) {
-                    Text(text = if (proximaVisita.isEmpty()) "Recordatorio Próxima Visita" else "Próxima Visita: $proximaVisita")
+                    Text(text = if (proximaVisita.isEmpty()) "Seleccionar Fecha Próxima Visita *" else "Próxima Visita: $proximaVisita")
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -682,13 +688,8 @@ fun AgricolaForm(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Datos Usuario
-                OutlinedTextField(
-                    value = cedulaUsuario,
-                    onValueChange = { cedulaUsuario = it },
-                    label = { Text("Cédula del Productor (Usuario) *") },
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                )
+                Text("Productor: $nombre ${if (cedulaUsuario.isNotEmpty()) "($cedulaUsuario)" else ""}", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // Firma Usuario
                 SignaturePad(
@@ -706,47 +707,107 @@ fun AgricolaForm(
         // Botón de Guardado
         Button(
             onClick = {
-                // VALIDACIONES
-                if (nombre.isBlank() || finca.isBlank() || vereda.isBlank() || telefono.isBlank() ||
-                    objetivoVisita.isBlank() || recomendaciones.isBlank() || profesional.isBlank() ||
-                    tarjetaProfesional.isBlank() || cedulaOperario.isBlank() || cedulaUsuario.isBlank() ||
-                    areaIntervenir.isBlank()
-                ) {
-                    Toast.makeText(context, "Por favor complete todos los campos marcados con (*)", Toast.LENGTH_LONG).show()
+                // 1. VALIDACIÓN: Información digitada no agregada en Actividades (Cultivos)
+                val hasTypedCultivo = tempEspecie.isNotBlank() || tempTipo.isNotBlank() ||
+                        tempArea.isNotBlank() || tempProduccion.isNotBlank() || tempObsCultivo.isNotBlank()
+                if (hasTypedCultivo) {
+                    Toast.makeText(context, "Tiene información digitada en actividad, por favor agregar cultivo a la lista", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
-                if (muestraSuelo && numeroMuestra.isBlank()) {
-                    Toast.makeText(context, "Ingrese el número de la muestra de suelo", Toast.LENGTH_LONG).show()
+                // 2. VALIDACIÓN: Información digitada no agregada en Materiales
+                val hasTypedMaterial = tempMaterial.isNotBlank() || tempCantidad.isNotBlank() || tempUnidad.isNotBlank()
+                if (hasTypedMaterial) {
+                    Toast.makeText(context, "Tiene información digitada en materiales entregados, por favor agregar material a la lista", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                // 3. VALIDACIÓN: Obligatoriedad de Campos Generales
+                if (numeroRegistro.isBlank() || fecha.isBlank() || nombre.isBlank() || cedulaUsuario.isBlank() ||
+                    telefono.isBlank() || finca.isBlank() || vereda.isBlank() || corregimiento.isBlank() ||
+                    cuenca.isBlank() || horaInicio.isBlank() || horaFin.isBlank()
+                ) {
+                    Toast.makeText(context, "Por favor complete todos los campos de información general (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
                 if (selectedMotivos.isEmpty()) {
-                    Toast.makeText(context, "Debe seleccionar al menos un motivo de acompañamiento", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Debe seleccionar al menos un motivo de acompañamiento (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
-                if (!aceptaCorresponsabilidad) {
-                    Toast.makeText(context, "Debe aceptar el texto de corresponsabilidad legal", Toast.LENGTH_LONG).show()
+                if (selectedHuertas.isEmpty()) {
+                    Toast.makeText(context, "Debe seleccionar al menos un estado de huerta (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
-                if (firmaProfesional == null) {
-                    Toast.makeText(context, "Falta la firma digital del Profesional", Toast.LENGTH_LONG).show()
+                if (objetivoVisita.isBlank()) {
+                    Toast.makeText(context, "Ingrese el objetivo específico de la visita (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
-                if (firmaOperario == null) {
-                    Toast.makeText(context, "Falta la firma digital del Operario de Campo", Toast.LENGTH_LONG).show()
+
+                if (cultivos.isEmpty()) {
+                    Toast.makeText(context, "Debe agregar al menos un cultivo a la lista de actividades (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
-                if (firmaUsuario == null) {
-                    Toast.makeText(context, "Falta la firma digital del Productor (Usuario)", Toast.LENGTH_LONG).show()
+
+                if (muestraSuelo && numeroMuestra.isBlank()) {
+                    Toast.makeText(context, "Ingrese el número de la muestra de suelo (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (latitud == null || longitud == null) {
+                    Toast.makeText(context, "Por favor capture las coordenadas GPS de la visita (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (areaIntervenir.isBlank()) {
+                    Toast.makeText(context, "Ingrese el área total a intervenir (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
                 val areaVal = areaIntervenir.toDoubleOrNull()
                 if (areaVal == null) {
                     Toast.makeText(context, "Ingrese un valor numérico válido para el área a intervenir", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (observacionesGeo.isBlank()) {
+                    Toast.makeText(context, "Ingrese observaciones de la ubicación (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (recomendaciones.isBlank()) {
+                    Toast.makeText(context, "Ingrese las recomendaciones generales (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (!aceptaCorresponsabilidad) {
+                    Toast.makeText(context, "Debe aceptar el texto de corresponsabilidad legal (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (proximaVisita.isBlank()) {
+                    Toast.makeText(context, "Ingrese la fecha programada para la próxima visita (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                if (profesional.isBlank() || tarjetaProfesional.isBlank() || cedulaOperario.isBlank()) {
+                    Toast.makeText(context, "Por favor diligencie los datos del profesional y operario (*)", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+
+                // 4. VALIDACIÓN ESPECÍFICA DE FIRMAS
+                if (firmaProfesional == null) {
+                    Toast.makeText(context, "Por favor guarde la firma correspondiente del Profesional", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+                if (firmaOperario == null) {
+                    Toast.makeText(context, "Por favor guarde la firma correspondiente del Operario de Campo", Toast.LENGTH_LONG).show()
+                    return@Button
+                }
+                if (firmaUsuario == null) {
+                    Toast.makeText(context, "Por favor guarde la firma correspondiente del Productor (Usuario)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
@@ -811,26 +872,12 @@ fun AgricolaForm(
                             if (id != -1L) {
                                 val visitaGuardada = visita.copy(id = id.toInt())
 
-                                coroutineScope.launch {
-                                    if (NetworkUtils.isNetworkAvailable(context)) {
-                                        val uploaded = SyncManager.uploadAgricola(visitaGuardada)
-                                        if (uploaded) {
-                                            dbHelper.markVisitaAgricolaSynced(id.toInt())
-                                            Toast.makeText(context, "Visita agrícola subida a la nube exitosamente", Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(context, "Guardado local. Se sincronizará en segundo plano al conectar.", Toast.LENGTH_LONG).show()
-                                        }
-                                    } else {
-                                        Toast.makeText(context, "Guardado localmente (Sin internet). Se sincronizará apenas haya conexión.", Toast.LENGTH_LONG).show()
-                                    }
-                                }
-
                                 // Generar PDF
                                 try {
                                     val pdfFile = PdfGenerator.generateVisitaAgricolaPdf(context, visitaGuardada)
-                                    Toast.makeText(context, "PDF generado: ${pdfFile.name}", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Registro guardado y PDF generado: ${pdfFile.name}", Toast.LENGTH_SHORT).show()
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Error al generar PDF: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, "Registro guardado. Error al generar PDF: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                                 }
                                 onNavigateToHistorial()
                             } else {
