@@ -12,26 +12,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = NaranjaArena,
-    secondary = AmarilloCrema,
-    tertiary = VerdeOlivaMedio,
-    background = VerdePrincipal,
-    surface = VerdeOlivaMedio,
-    onPrimary = Color.Black,
-    onSecondary = Color.Black,
-    onBackground = Color.White,
-    onSurface = Color.White
-)
-
 private val LightColorScheme = lightColorScheme(
     primary = NaranjaArena,             // Botones principales en naranja arena crema
-    secondary = AmarilloCrema,
+    secondary = AmarilloCrema,          // Botones auxiliares en amarillo crema
     tertiary = VerdeOlivaMedio,         // Headers en verde olivo
     background = Color.White,           // Fondo blanco
     surface = Color.White,              // Superficies/Tarjetas blancas
-    onPrimary = Color.Black,            // Letra negra en los botones
-    onSecondary = Color.Black,
+    surfaceVariant = Color.White,       // Forzar blanco en variantes de tarjetas/campos
+    onPrimary = Color.Black,            // Letra negra en los botones principales
+    onSecondary = Color.Black,          // Letra negra en los botones auxiliares
     onBackground = Color(0xFF1E211A),   // Letra de contenido negra
     onSurface = Color(0xFF1E211A)       // Letra de superficies negra
 )
@@ -42,15 +31,9 @@ fun Somos_sumapaz_agroTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    // Forzamos a que la aplicación siempre use la paleta clara (fondo blanco)
+    // para evitar que el Modo Oscuro del celular altere los colores institucionales.
+    val colorScheme = LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

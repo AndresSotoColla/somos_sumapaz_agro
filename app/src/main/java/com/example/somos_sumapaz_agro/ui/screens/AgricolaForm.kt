@@ -25,7 +25,10 @@ import com.example.somos_sumapaz_agro.ui.components.DropdownSelector
 import com.example.somos_sumapaz_agro.ui.components.MultiSelectDropdownSelector
 import com.example.somos_sumapaz_agro.ui.components.SignaturePad
 import com.example.somos_sumapaz_agro.util.LocationHelper
+import com.example.somos_sumapaz_agro.util.NetworkUtils
 import com.example.somos_sumapaz_agro.util.PdfGenerator
+import com.example.somos_sumapaz_agro.util.SyncManager
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -36,6 +39,8 @@ fun AgricolaForm(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     // Form States
     val calendar = Calendar.getInstance()
@@ -745,56 +750,8 @@ fun AgricolaForm(
                     return@Button
                 }
 
-                // Guardar en la base de datos
-                val visita = VisitaAgricola(
-                    fecha = fecha,
-                    nombre = nombre,
-                    finca = finca,
-                    vereda = vereda,
-                    corregimiento = corregimiento,
-                    cuenca = cuenca,
-                    telefono = telefono,
-                    hora_inicio = horaInicio,
-                    hora_fin = if (horaFin.isEmpty()) nowTimeStr else horaFin,
-                    numero_registro = numeroRegistro,
-                    objetivo_visita = objetivoVisita,
-                    recomendaciones = recomendaciones,
-                    muestra_suelo = muestraSuelo,
-                    numero_muestra = if (muestraSuelo) numeroMuestra else null,
-                    latitud = latitud,
-                    longitud = longitud,
-                    altitud = altitud,
-                    observaciones_geo = observacionesGeo,
-                    area_intervenir = areaVal,
-                    acepta_corresponsabilidad = aceptaCorresponsabilidad,
-                    proxima_visita = if (proximaVisita.isEmpty()) null else proximaVisita,
-                    profesional = profesional,
-                    tarjeta_profesional = tarjetaProfesional,
-                    cedula_operario = cedulaOperario,
-                    cedula_usuario = cedulaUsuario,
-                    firma_profesional = firmaProfesional,
-                    firma_operario = firmaOperario,
-                    firma_usuario = firmaUsuario,
-                    motivos = selectedMotivos.toList(),
-                    tiposHuerta = selectedHuertas.toList(),
-                    cultivos = cultivos.toList(),
-                    materiales = materiales.toList()
-                )
-
-                val id = dbHelper.insertVisitaAgricola(visita)
-                if (id != -1L) {
-                    Toast.makeText(context, "Visita agrícola guardada correctamente", Toast.LENGTH_SHORT).show()
-                    // Generar PDF
-                    try {
-                        val pdfFile = PdfGenerator.generateVisitaAgricolaPdf(context, visita.copy(id = id.toInt()))
-                        Toast.makeText(context, "PDF generado: ${pdfFile.name}", Toast.LENGTH_LONG).show()
-                    } catch (e: Exception) {
-                        Toast.makeText(context, "Error al generar PDF: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                    }
-                    onNavigateToHistorial()
-                } else {
-                    Toast.makeText(context, "Error al guardar en la base de datos", Toast.LENGTH_LONG).show()
-                }
+                // Abrir cuadro de confirmación
+                showConfirmDialog = true
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -802,6 +759,94 @@ fun AgricolaForm(
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text("GUARDAR Y GENERAR ACTA", style = MaterialTheme.typography.titleMedium)
+        }
+
+        if (showConfirmDialog) {
+            val areaVal = areaIntervenir.toDoubleOrNull() ?: 0.0
+            AlertDialog(
+                onDismissRequest = { showConfirmDialog = false },
+                title = { Text("Confirmación de Información") },
+                text = { Text("¿Está seguro de la información consignada?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showConfirmDialog = false
+
+                            val visita = VisitaAgricola(
+                                fecha = fecha,
+                                nombre = nombre,
+                                finca = finca,
+                                vereda = vereda,
+                                corregimiento = corregimiento,
+                                cuenca = cuenca,
+                                telefono = telefono,
+                                hora_inicio = horaInicio,
+                                hora_fin = if (horaFin.isEmpty()) nowTimeStr else horaFin,
+                                numero_registro = numeroRegistro,
+                                objetivo_visita = objetivoVisita,
+                                recomendaciones = recomendaciones,
+                                muestra_suelo = muestraSuelo,
+                                numero_muestra = if (muestraSuelo) numeroMuestra else null,
+                                latitud = latitud,
+                                longitud = longitud,
+                                altitud = altitud,
+                                observaciones_geo = observacionesGeo,
+                                area_intervenir = areaVal,
+                                acepta_corresponsabilidad = aceptaCorresponsabilidad,
+                                proxima_visita = if (proximaVisita.isEmpty()) null else proximaVisita,
+                                profesional = profesional,
+                                tarjeta_profesional = tarjetaProfesional,
+                                cedula_operario = cedulaOperario,
+                                cedula_usuario = cedulaUsuario,
+                                firma_profesional = firmaProfesional,
+                                firma_operario = firmaOperario,
+                                firma_usuario = firmaUsuario,
+                                motivos = selectedMotivos.toList(),
+                                tiposHuerta = selectedHuertas.toList(),
+                                cultivos = cultivos.toList(),
+                                materiales = materiales.toList()
+                            )
+
+                            val id = dbHelper.insertVisitaAgricola(visita)
+                            if (id != -1L) {
+                                val visitaGuardada = visita.copy(id = id.toInt())
+
+                                coroutineScope.launch {
+                                    if (NetworkUtils.isNetworkAvailable(context)) {
+                                        val uploaded = SyncManager.uploadAgricola(visitaGuardada)
+                                        if (uploaded) {
+                                            dbHelper.markVisitaAgricolaSynced(id.toInt())
+                                            Toast.makeText(context, "Visita agrícola subida a la nube exitosamente", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "Guardado local. Se sincronizará en segundo plano al conectar.", Toast.LENGTH_LONG).show()
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "Guardado localmente (Sin internet). Se sincronizará apenas haya conexión.", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+
+                                // Generar PDF
+                                try {
+                                    val pdfFile = PdfGenerator.generateVisitaAgricolaPdf(context, visitaGuardada)
+                                    Toast.makeText(context, "PDF generado: ${pdfFile.name}", Toast.LENGTH_SHORT).show()
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Error al generar PDF: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                }
+                                onNavigateToHistorial()
+                            } else {
+                                Toast.makeText(context, "Error al guardar en la base de datos", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    ) {
+                        Text("Aceptar")
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = { showConfirmDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
 
         Spacer(modifier = Modifier.height(40.dp))

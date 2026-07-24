@@ -10,7 +10,7 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
 
     companion object {
         const val DATABASE_NAME = "SumapazAgro.db"
-        const val DATABASE_VERSION = 1
+        const val DATABASE_VERSION = 2
 
         // Tablas Pecuarias
         const val TABLE_PEC_VISITA = "visitas_pecuarias"
@@ -56,7 +56,8 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                 cedula_usuario TEXT,
                 firma_profesional TEXT,
                 firma_operario TEXT,
-                firma_usuario TEXT
+                firma_usuario TEXT,
+                synced INTEGER DEFAULT 0
             );
         """.trimIndent())
 
@@ -101,7 +102,8 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                 cedula_usuario TEXT,
                 firma_profesional TEXT,
                 firma_operario TEXT,
-                firma_usuario TEXT
+                firma_usuario TEXT,
+                synced INTEGER DEFAULT 0
             );
         """.trimIndent())
 
@@ -159,14 +161,23 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_PEC_ESPECIE")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_PEC_VISITA")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_AGR_MATERIAL")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_AGR_CULTIVO")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_AGR_HUERTA")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_AGR_MOTIVO")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_AGR_VISITA")
-        onCreate(db)
+        if (oldVersion < 2) {
+            try {
+                db.execSQL("ALTER TABLE $TABLE_PEC_VISITA ADD COLUMN synced INTEGER DEFAULT 0;")
+            } catch (e: Exception) {}
+            try {
+                db.execSQL("ALTER TABLE $TABLE_AGR_VISITA ADD COLUMN synced INTEGER DEFAULT 0;")
+            } catch (e: Exception) {}
+        } else {
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_PEC_ESPECIE")
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_PEC_VISITA")
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_AGR_MATERIAL")
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_AGR_CULTIVO")
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_AGR_HUERTA")
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_AGR_MOTIVO")
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_AGR_VISITA")
+            onCreate(db)
+        }
     }
 
     // ==========================================
@@ -203,6 +214,7 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                 put("firma_profesional", visita.firma_profesional)
                 put("firma_operario", visita.firma_operario)
                 put("firma_usuario", visita.firma_usuario)
+                put("synced", if (visita.synced) 1 else 0)
             }
             val id = db.insert(TABLE_PEC_VISITA, null, values)
             if (id != -1L) {
@@ -222,6 +234,12 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
         }
     }
 
+    fun markVisitaPecuariaSynced(id: Int) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply { put("synced", 1) }
+        db.update(TABLE_PEC_VISITA, values, "id = ?", arrayOf(id.toString()))
+    }
+
     fun getAllVisitasPecuarias(): List<VisitaPecuaria> {
         val list = mutableListOf<VisitaPecuaria>()
         val db = this.readableDatabase
@@ -239,6 +257,9 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                     } while (espCursor.moveToNext())
                 }
                 espCursor.close()
+
+                val syncedColIdx = cursor.getColumnIndex("synced")
+                val isSynced = if (syncedColIdx != -1) cursor.getInt(syncedColIdx) == 1 else false
 
                 val visita = VisitaPecuaria(
                     id = id,
@@ -267,13 +288,18 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                     firma_profesional = cursor.getString(cursor.getColumnIndexOrThrow("firma_profesional")),
                     firma_operario = cursor.getString(cursor.getColumnIndexOrThrow("firma_operario")),
                     firma_usuario = cursor.getString(cursor.getColumnIndexOrThrow("firma_usuario")),
-                    especies = especies
+                    especies = especies,
+                    synced = isSynced
                 )
                 list.add(visita)
             } while (cursor.moveToNext())
         }
         cursor.close()
         return list
+    }
+
+    fun getUnsyncedVisitasPecuarias(): List<VisitaPecuaria> {
+        return getAllVisitasPecuarias().filter { !it.synced }
     }
 
     fun deleteVisitaPecuaria(id: Int) {
@@ -318,6 +344,7 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                 put("firma_profesional", visita.firma_profesional)
                 put("firma_operario", visita.firma_operario)
                 put("firma_usuario", visita.firma_usuario)
+                put("synced", if (visita.synced) 1 else 0)
             }
             val id = db.insert(TABLE_AGR_VISITA, null, values)
             if (id != -1L) {
@@ -369,6 +396,12 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
         } finally {
             db.endTransaction()
         }
+    }
+
+    fun markVisitaAgricolaSynced(id: Int) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply { put("synced", 1) }
+        db.update(TABLE_AGR_VISITA, values, "id = ?", arrayOf(id.toString()))
     }
 
     fun getAllVisitasAgricolas(): List<VisitaAgricola> {
@@ -434,6 +467,9 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                 }
                 matCursor.close()
 
+                val syncedColIdx = cursor.getColumnIndex("synced")
+                val isSynced = if (syncedColIdx != -1) cursor.getInt(syncedColIdx) == 1 else false
+
                 val visita = VisitaAgricola(
                     id = id,
                     fecha = cursor.getString(cursor.getColumnIndexOrThrow("fecha")),
@@ -467,13 +503,18 @@ class VisitasDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAM
                     motivos = motivos,
                     tiposHuerta = tiposHuerta,
                     cultivos = cultivos,
-                    materiales = materiales
+                    materiales = materiales,
+                    synced = isSynced
                 )
                 list.add(visita)
             } while (cursor.moveToNext())
         }
         cursor.close()
         return list
+    }
+
+    fun getUnsyncedVisitasAgricolas(): List<VisitaAgricola> {
+        return getAllVisitasAgricolas().filter { !it.synced }
     }
 
     fun deleteVisitaAgricola(id: Int) {

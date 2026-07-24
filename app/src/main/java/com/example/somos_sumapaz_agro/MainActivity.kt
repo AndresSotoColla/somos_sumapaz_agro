@@ -4,6 +4,7 @@ import android.Manifest
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.example.somos_sumapaz_agro.db.VisitasDbHelper
 import com.example.somos_sumapaz_agro.ui.screens.AgricolaForm
@@ -43,6 +45,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Somos_sumapaz_agroTheme {
+                var currentScreen by remember { mutableStateOf(Screen.Index) }
+
+                // Intercepta el botón Atrás físico o gesto del celular
+                BackHandler(enabled = currentScreen != Screen.Index) {
+                    currentScreen = Screen.Index
+                }
+
                 // Solicitar permisos de GPS al inicio
                 val permissionLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -65,42 +74,11 @@ class MainActivity : ComponentActivity() {
                             Manifest.permission.ACCESS_COARSE_LOCATION
                         )
                     )
+                    com.example.somos_sumapaz_agro.util.SyncManager.syncAllPending(this@MainActivity, dbHelper)
                 }
 
-                var currentScreen by remember { mutableStateOf(Screen.Index) }
-
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        TopAppBar(
-                            title = { 
-                                Text(
-                                    text = when (currentScreen) {
-                                        Screen.Index -> "Somos Sumapaz Agro Encuestas"
-                                        Screen.Pecuaria -> "Visita Pecuaria"
-                                        Screen.Agricola -> "Visita Agrícola"
-                                        Screen.Historial -> "Historial de Visitas"
-                                    }, 
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                ) 
-                            },
-                            navigationIcon = {
-                                if (currentScreen != Screen.Index) {
-                                    IconButton(onClick = { currentScreen = Screen.Index }) {
-                                        Icon(
-                                            imageVector = Icons.Default.ArrowBack,
-                                            contentDescription = "Volver al Índice",
-                                            tint = MaterialTheme.colorScheme.onPrimary
-                                        )
-                                    }
-                                }
-                            },
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = com.example.somos_sumapaz_agro.ui.theme.VerdeOlivaMedio
-                            )
-                        )
-                    }
+                 Scaffold(
+                    modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
                     Surface(
                         modifier = Modifier

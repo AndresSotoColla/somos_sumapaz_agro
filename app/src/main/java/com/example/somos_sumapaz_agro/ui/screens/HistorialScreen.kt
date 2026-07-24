@@ -26,12 +26,17 @@ import com.example.somos_sumapaz_agro.db.VisitasDbHelper
 import com.example.somos_sumapaz_agro.model.VisitaAgricola
 import com.example.somos_sumapaz_agro.model.VisitaPecuaria
 import com.example.somos_sumapaz_agro.util.CsvExporter
+import com.example.somos_sumapaz_agro.util.NetworkUtils
 import com.example.somos_sumapaz_agro.util.PdfGenerator
+import com.example.somos_sumapaz_agro.util.SyncManager
+import kotlinx.coroutines.launch
 import java.io.File
 
 @Composable
 fun HistorialScreen(dbHelper: VisitasDbHelper) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var isSyncing by remember { mutableStateOf(false) }
 
     // Cargar listas de visitas
     var visitasPecuarias by remember { mutableStateOf(emptyList<VisitaPecuaria>()) }
@@ -43,8 +48,24 @@ fun HistorialScreen(dbHelper: VisitasDbHelper) {
         visitasAgricolas = dbHelper.getAllVisitasAgricolas()
     }
 
+    val triggerSync = {
+        if (!isSyncing) {
+            isSyncing = true
+            coroutineScope.launch {
+                SyncManager.syncAllPending(context, dbHelper) { count ->
+                    isSyncing = false
+                    refreshData()
+                    if (count > 0) {
+                        Toast.makeText(context, "$count visita(s) sincronizada(s) exitosamente", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
     LaunchedEffect(Unit) {
         refreshData()
+        triggerSync()
     }
 
     var selectedTab by remember { mutableStateOf(0) } // 0 = Pecuaria, 1 = Agrícola
@@ -83,12 +104,26 @@ fun HistorialScreen(dbHelper: VisitasDbHelper) {
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(
-            text = "Historial de Visitas",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Historial de Visitas",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.tertiary
+            )
+            Button(
+                onClick = { triggerSync() },
+                enabled = !isSyncing,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) {
+                Text(if (isSyncing) "Sincronizando..." else "Sincronizar", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Botones de Exportar a Excel (CSV)
         Row(
@@ -204,7 +239,21 @@ fun VisitaPecuariaCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(visita.usuario, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(visita.fecha, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(visita.fecha, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(
+                        color = if (visita.synced) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Text(
+                            text = if (visita.synced) "Sincronizado ✓" else "Pendiente ☁",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text("Finca: ${visita.finca} | Vereda: ${visita.vereda}", style = MaterialTheme.typography.bodyMedium)
@@ -251,7 +300,21 @@ fun VisitaAgricolaCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(visita.nombre, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(visita.fecha, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(visita.fecha, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(
+                        color = if (visita.synced) Color(0xFF4CAF50) else Color(0xFFFF9800),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Text(
+                            text = if (visita.synced) "Sincronizado ✓" else "Pendiente ☁",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text("Finca: ${visita.finca} | Vereda: ${visita.vereda}", style = MaterialTheme.typography.bodyMedium)

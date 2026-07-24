@@ -19,7 +19,10 @@ import com.example.somos_sumapaz_agro.ui.components.DropdownSelector
 import com.example.somos_sumapaz_agro.ui.components.MultiSelectDropdownSelector
 import com.example.somos_sumapaz_agro.ui.components.SignaturePad
 import com.example.somos_sumapaz_agro.util.LocationHelper
+import com.example.somos_sumapaz_agro.util.NetworkUtils
 import com.example.somos_sumapaz_agro.util.PdfGenerator
+import com.example.somos_sumapaz_agro.util.SyncManager
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -30,6 +33,8 @@ fun PecuariaForm(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+    var showConfirmDialog by remember { mutableStateOf(false) }
 
     // Form States
     val calendar = Calendar.getInstance()
@@ -481,50 +486,8 @@ fun PecuariaForm(
                     return@Button
                 }
 
-                // Guardar en la base de datos
-                val visita = VisitaPecuaria(
-                    fecha = fecha,
-                    corregimiento = corregimiento,
-                    vereda = vereda,
-                    finca = finca,
-                    cuenca = cuenca,
-                    hora_inicio = horaInicio,
-                    hora_fin = if (horaFin.isEmpty()) nowTimeStr else horaFin,
-                    latitud = latitud,
-                    longitud = longitud,
-                    usuario = usuario,
-                    primera_vez = esPrimeraVez,
-                    seguimiento = !esPrimeraVez,
-                    fecha_visita_anterior = if (esPrimeraVez) null else fechaVisitaAnterior,
-                    diagnostico = diagnostico,
-                    procedimiento = procedimiento,
-                    recomendaciones = recomendaciones,
-                    acepta_corresponsabilidad = aceptaCorresponsabilidad,
-                    proxima_visita = if (proximaVisita.isEmpty()) null else proximaVisita,
-                    profesional = profesional,
-                    tarjeta_profesional = tarjetaProfesional,
-                    cedula_operario = cedulaOperario,
-                    cedula_usuario = cedulaUsuario,
-                    firma_profesional = firmaProfesional,
-                    firma_operario = firmaOperario,
-                    firma_usuario = firmaUsuario,
-                    especies = selectedEspecies.toList()
-                )
-
-                val id = dbHelper.insertVisitaPecuaria(visita)
-                if (id != -1L) {
-                    Toast.makeText(context, "Visita pecuaria guardada correctamente", Toast.LENGTH_SHORT).show()
-                    // Generar PDF
-                    try {
-                        val pdfFile = PdfGenerator.generateVisitaPecuariaPdf(context, visita.copy(id = id.toInt()))
-                        Toast.makeText(context, "PDF generado: ${pdfFile.name}", Toast.LENGTH_LONG).show()
-                    } catch (e: Exception) {
-                        Toast.makeText(context, "Error al generar PDF: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-                    }
-                    onNavigateToHistorial()
-                } else {
-                    Toast.makeText(context, "Error al guardar en la base de datos", Toast.LENGTH_LONG).show()
-                }
+                // Abrir cuadro de confirmación
+                showConfirmDialog = true
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -532,6 +495,87 @@ fun PecuariaForm(
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text("GUARDAR Y GENERAR ACTA", style = MaterialTheme.typography.titleMedium)
+        }
+
+        if (showConfirmDialog) {
+            AlertDialog(
+                onDismissRequest = { showConfirmDialog = false },
+                title = { Text("Confirmación de Información") },
+                text = { Text("¿Está seguro de la información consignada?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showConfirmDialog = false
+
+                            val visita = VisitaPecuaria(
+                                fecha = fecha,
+                                corregimiento = corregimiento,
+                                vereda = vereda,
+                                finca = finca,
+                                cuenca = cuenca,
+                                hora_inicio = horaInicio,
+                                hora_fin = if (horaFin.isEmpty()) nowTimeStr else horaFin,
+                                latitud = latitud,
+                                longitud = longitud,
+                                usuario = usuario,
+                                primera_vez = esPrimeraVez,
+                                seguimiento = !esPrimeraVez,
+                                fecha_visita_anterior = if (esPrimeraVez) null else fechaVisitaAnterior,
+                                diagnostico = diagnostico,
+                                procedimiento = procedimiento,
+                                recomendaciones = recomendaciones,
+                                acepta_corresponsabilidad = aceptaCorresponsabilidad,
+                                proxima_visita = if (proximaVisita.isEmpty()) null else proximaVisita,
+                                profesional = profesional,
+                                tarjeta_profesional = tarjetaProfesional,
+                                cedula_operario = cedulaOperario,
+                                cedula_usuario = cedulaUsuario,
+                                firma_profesional = firmaProfesional,
+                                firma_operario = firmaOperario,
+                                firma_usuario = firmaUsuario,
+                                especies = selectedEspecies.toList()
+                            )
+
+                            val id = dbHelper.insertVisitaPecuaria(visita)
+                            if (id != -1L) {
+                                val visitaGuardada = visita.copy(id = id.toInt())
+                                
+                                coroutineScope.launch {
+                                    if (NetworkUtils.isNetworkAvailable(context)) {
+                                        val uploaded = SyncManager.uploadPecuaria(visitaGuardada)
+                                        if (uploaded) {
+                                            dbHelper.markVisitaPecuariaSynced(id.toInt())
+                                            Toast.makeText(context, "Visita pecuaria subida a la nube exitosamente", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "Guardado local. Se sincronizará en segundo plano al conectar.", Toast.LENGTH_LONG).show()
+                                        }
+                                    } else {
+                                        Toast.makeText(context, "Guardado localmente (Sin internet). Se sincronizará apenas haya conexión.", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+
+                                // Generar PDF
+                                try {
+                                    val pdfFile = PdfGenerator.generateVisitaPecuariaPdf(context, visitaGuardada)
+                                    Toast.makeText(context, "PDF generado: ${pdfFile.name}", Toast.LENGTH_SHORT).show()
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Error al generar PDF: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                }
+                                onNavigateToHistorial()
+                            } else {
+                                Toast.makeText(context, "Error al guardar en la base de datos", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    ) {
+                        Text("Aceptar")
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = { showConfirmDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
 
         Spacer(modifier = Modifier.height(40.dp))

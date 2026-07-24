@@ -28,7 +28,8 @@ data class VisitaPecuaria(
     val firma_profesional: String?, // Codificado en Base64
     val firma_operario: String?,    // Codificado en Base64
     val firma_usuario: String?,     // Codificado en Base64
-    val especies: List<String> = emptyList() // Guardados en visita_pecuaria_especies
+    val especies: List<String> = emptyList(), // Guardados en visita_pecuaria_especies
+    val synced: Boolean = false
 )
 
 // Modelos para la visita agrícola
@@ -65,7 +66,8 @@ data class VisitaAgricola(
     val motivos: List<String> = emptyList(),      // Tabla motivos_visita_agricola
     val tiposHuerta: List<String> = emptyList(),  // Tabla tipo_huerta
     val cultivos: List<CultivoVisita> = emptyList(), // Tabla cultivos_visita
-    val materiales: List<MaterialEntregado> = emptyList() // Tabla materiales_entregados
+    val materiales: List<MaterialEntregado> = emptyList(), // Tabla materiales_entregados
+    val synced: Boolean = false
 )
 
 data class CultivoVisita(

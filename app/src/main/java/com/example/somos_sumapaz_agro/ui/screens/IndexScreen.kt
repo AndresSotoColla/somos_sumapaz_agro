@@ -8,7 +8,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,13 +20,16 @@ import com.example.somos_sumapaz_agro.Screen
 
 @Composable
 fun IndexScreen(onNavigate: (Screen) -> Unit) {
+    var showSurveyDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.weight(1f))
+
         // Logo / Identidad
         Text(
             text = "Somos Sumapaz",
@@ -44,31 +47,19 @@ fun IndexScreen(onNavigate: (Screen) -> Unit) {
             modifier = Modifier.padding(top = 4.dp, bottom = 32.dp)
         )
 
-        // Botón/Card 1: Visita Pecuaria
+        // Botón/Card 1: Encuestas
         IndexCard(
-            title = "Visita Pecuaria",
-            subtitle = "Registrar visitas de acompañamiento para ganado, porcinos, aves, etc.",
-            icon = Icons.Default.Home,
-            color = com.example.somos_sumapaz_agro.ui.theme.VerdeOlivaMedio,
-            textColor = Color.White,
-            onClick = { onNavigate(Screen.Pecuaria) }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Botón/Card 2: Visita Agrícola
-        IndexCard(
-            title = "Visita Agrícola",
-            subtitle = "Registrar visitas para cultivos de hortalizas, tubérculos, frutales e insumos.",
+            title = "Encuestas",
+            subtitle = "Registrar nueva visita técnica pecuaria o agrícola en campo.",
             icon = Icons.Default.Star,
-            color = com.example.somos_sumapaz_agro.ui.theme.NaranjaArena,
+            color = com.example.somos_sumapaz_agro.ui.theme.AmarilloCremaOscuro,
             textColor = Color.Black,
-            onClick = { onNavigate(Screen.Agricola) }
+            onClick = { showSurveyDialog = true }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón/Card 3: Historial y Reportes
+        // Botón/Card 2: Historial y Reportes
         IndexCard(
             title = "Historial y Reportes",
             subtitle = "Ver visitas cargadas, descargar actas en PDF y exportar consolidados a Excel.",
@@ -76,6 +67,78 @@ fun IndexScreen(onNavigate: (Screen) -> Unit) {
             color = com.example.somos_sumapaz_agro.ui.theme.AmarilloCremaOscuro,
             textColor = Color.Black,
             onClick = { onNavigate(Screen.Historial) }
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Text(
+            text = "versión 1.0",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+    }
+
+    // Diálogo de Selección de Encuesta
+    if (showSurveyDialog) {
+        AlertDialog(
+            onDismissRequest = { showSurveyDialog = false },
+            title = {
+                Text(
+                    text = "¿Qué encuesta desea realizar?",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = com.example.somos_sumapaz_agro.ui.theme.VerdeOlivaMedio,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            showSurveyDialog = false
+                            onNavigate(Screen.Pecuaria)
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = com.example.somos_sumapaz_agro.ui.theme.AmarilloCremaOscuro,
+                            contentColor = Color.Black
+                        )
+                    ) {
+                        Text("Visita Pecuaria", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = {
+                            showSurveyDialog = false
+                            onNavigate(Screen.Agricola)
+                        },
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = com.example.somos_sumapaz_agro.ui.theme.AmarilloCremaOscuro,
+                            contentColor = Color.Black
+                        )
+                    ) {
+                        Text("Visita Agrícola", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(
+                    onClick = { showSurveyDialog = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Gray)
+                ) {
+                    Text("Cancelar")
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
         )
     }
 }
