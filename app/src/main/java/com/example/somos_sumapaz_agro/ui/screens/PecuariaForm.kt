@@ -47,8 +47,8 @@ fun PecuariaForm(
     var horaInicio by remember { mutableStateOf(nowTimeStr) }
     var horaFin by remember { mutableStateOf("") }
     
-    var latitud by remember { mutableStateOf<Double?>(null) }
-    var longitud by remember { mutableStateOf<Double?>(null) }
+    var latitudStr by remember { mutableStateOf("") }
+    var longitudStr by remember { mutableStateOf("") }
     var usuario by remember { mutableStateOf("") }
     var documento by remember { mutableStateOf("") }
 
@@ -202,28 +202,41 @@ fun PecuariaForm(
                 // GPS Location
                 Row(
                     modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Lat: ${latitud ?: "N/A"}", style = MaterialTheme.typography.bodyMedium)
-                        Text("Lon: ${longitud ?: "N/A"}", style = MaterialTheme.typography.bodyMedium)
-                    }
+                    Text("Coordenadas GPS *", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
                     Button(
                         onClick = {
                             LocationHelper.getCurrentLocation(context,
                                 onLocationFetched = { lat, lon, _ ->
-                                    latitud = lat
-                                    longitud = lon
-                                    Toast.makeText(context, "Ubicación obtenida con éxito", Toast.LENGTH_SHORT).show()
+                                    latitudStr = lat.toString()
+                                    longitudStr = lon.toString()
+                                    Toast.makeText(context, "Ubicación GPS obtenida con éxito", Toast.LENGTH_SHORT).show()
                                 },
                                 onError = {
-                                    Toast.makeText(context, "Error GPS: $it", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, "Error GPS: $it. Puede digitar manualmente las coordenadas.", Toast.LENGTH_LONG).show()
                                 }
                             )
                         }
                     ) {
-                        Text("Obtener GPS *")
+                        Text("Obtener GPS")
                     }
+                }
+
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                    OutlinedTextField(
+                        value = latitudStr,
+                        onValueChange = { latitudStr = it },
+                        label = { Text("Latitud *") },
+                        modifier = Modifier.weight(1f).padding(end = 2.dp)
+                    )
+                    OutlinedTextField(
+                        value = longitudStr,
+                        onValueChange = { longitudStr = it },
+                        label = { Text("Longitud *") },
+                        modifier = Modifier.weight(1f).padding(start = 2.dp)
+                    )
                 }
             }
         }
@@ -456,8 +469,10 @@ fun PecuariaForm(
                     return@Button
                 }
 
-                if (latitud == null || longitud == null) {
-                    Toast.makeText(context, "Por favor capture las coordenadas GPS de la visita (*)", Toast.LENGTH_LONG).show()
+                val latVal = latitudStr.toDoubleOrNull()
+                val lonVal = longitudStr.toDoubleOrNull()
+                if (latVal == null || lonVal == null) {
+                    Toast.makeText(context, "Ingrese valores numéricos válidos para Latitud y Longitud (o presione Obtener GPS) (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
@@ -527,6 +542,9 @@ fun PecuariaForm(
         }
 
         if (showConfirmDialog) {
+            val latVal = latitudStr.toDoubleOrNull()
+            val lonVal = longitudStr.toDoubleOrNull()
+
             AlertDialog(
                 onDismissRequest = { showConfirmDialog = false },
                 title = { Text("Confirmación de Información") },
@@ -544,8 +562,8 @@ fun PecuariaForm(
                                 cuenca = cuenca,
                                 hora_inicio = horaInicio,
                                 hora_fin = if (horaFin.isEmpty()) nowTimeStr else horaFin,
-                                latitud = latitud,
-                                longitud = longitud,
+                                latitud = latVal,
+                                longitud = lonVal,
                                 usuario = usuario,
                                 primera_vez = esPrimeraVez,
                                 seguimiento = !esPrimeraVez,

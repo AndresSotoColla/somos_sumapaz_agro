@@ -101,9 +101,9 @@ fun AgricolaForm(
     var tempUnidad by remember { mutableStateOf("") }
 
     // 5. Georreferenciación
-    var latitud by remember { mutableStateOf<Double?>(null) }
-    var longitud by remember { mutableStateOf<Double?>(null) }
-    var altitud by remember { mutableStateOf<Double?>(null) }
+    var latitudStr by remember { mutableStateOf("") }
+    var longitudStr by remember { mutableStateOf("") }
+    var altitudStr by remember { mutableStateOf("") }
     var observacionesGeo by remember { mutableStateOf("") }
     var areaIntervenir by remember { mutableStateOf("") }
 
@@ -525,36 +525,53 @@ fun AgricolaForm(
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("5. Georreferenciación y Área *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
-                Spacer(modifier = Modifier.height(12.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Lat: ${latitud ?: "N/A"}", style = MaterialTheme.typography.bodyMedium)
-                        Text("Lon: ${longitud ?: "N/A"}", style = MaterialTheme.typography.bodyMedium)
-                        Text("Alt: ${altitud?.let { "$it msnm" } ?: "N/A"}", style = MaterialTheme.typography.bodyMedium)
-                    }
+                    Text("5. Georreferenciación y Área *", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.tertiary)
                     Button(
                         onClick = {
                             LocationHelper.getCurrentLocation(context,
                                 onLocationFetched = { lat, lon, alt ->
-                                    latitud = lat
-                                    longitud = lon
-                                    altitud = alt
-                                    Toast.makeText(context, "Ubicación obtenida con éxito", Toast.LENGTH_SHORT).show()
+                                    latitudStr = lat.toString()
+                                    longitudStr = lon.toString()
+                                    altitudStr = alt?.toString() ?: ""
+                                    Toast.makeText(context, "Ubicación GPS obtenida con éxito", Toast.LENGTH_SHORT).show()
                                 },
                                 onError = {
-                                    Toast.makeText(context, "Error GPS: $it", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, "Error GPS: $it. Puede escribir las coordenadas manualmente.", Toast.LENGTH_LONG).show()
                                 }
                             )
                         }
                     ) {
-                        Text("Obtener GPS *")
+                        Text("Obtener GPS")
                     }
                 }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = latitudStr,
+                        onValueChange = { latitudStr = it },
+                        label = { Text("Latitud *") },
+                        modifier = Modifier.weight(1f).padding(end = 2.dp)
+                    )
+                    OutlinedTextField(
+                        value = longitudStr,
+                        onValueChange = { longitudStr = it },
+                        label = { Text("Longitud *") },
+                        modifier = Modifier.weight(1f).padding(start = 2.dp)
+                    )
+                }
+
+                OutlinedTextField(
+                    value = altitudStr,
+                    onValueChange = { altitudStr = it },
+                    label = { Text("Altitud (msnm) *") },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                )
 
                 OutlinedTextField(
                     value = areaIntervenir,
@@ -756,8 +773,11 @@ fun AgricolaForm(
                     return@Button
                 }
 
-                if (latitud == null || longitud == null) {
-                    Toast.makeText(context, "Por favor capture las coordenadas GPS de la visita (*)", Toast.LENGTH_LONG).show()
+                val latVal = latitudStr.toDoubleOrNull()
+                val lonVal = longitudStr.toDoubleOrNull()
+                val altVal = altitudStr.toDoubleOrNull()
+                if (latVal == null || lonVal == null || altVal == null) {
+                    Toast.makeText(context, "Ingrese valores numéricos válidos para Latitud, Longitud y Altitud (o presione Obtener GPS) (*)", Toast.LENGTH_LONG).show()
                     return@Button
                 }
 
@@ -824,6 +844,10 @@ fun AgricolaForm(
 
         if (showConfirmDialog) {
             val areaVal = areaIntervenir.toDoubleOrNull() ?: 0.0
+            val latVal = latitudStr.toDoubleOrNull()
+            val lonVal = longitudStr.toDoubleOrNull()
+            val altVal = altitudStr.toDoubleOrNull()
+
             AlertDialog(
                 onDismissRequest = { showConfirmDialog = false },
                 title = { Text("Confirmación de Información") },
@@ -848,9 +872,9 @@ fun AgricolaForm(
                                 recomendaciones = recomendaciones,
                                 muestra_suelo = muestraSuelo,
                                 numero_muestra = if (muestraSuelo) numeroMuestra else null,
-                                latitud = latitud,
-                                longitud = longitud,
-                                altitud = altitud,
+                                latitud = latVal,
+                                longitud = lonVal,
+                                altitud = altVal,
                                 observaciones_geo = observacionesGeo,
                                 area_intervenir = areaVal,
                                 acepta_corresponsabilidad = aceptaCorresponsabilidad,
